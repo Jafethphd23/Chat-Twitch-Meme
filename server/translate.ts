@@ -179,13 +179,13 @@ export async function translateMessage(
     // Get target language name
     const targetLangName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
 
-    // Call OpenAI to translate and detect language
+    // Call OpenAI to translate
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         {
           role: "system",
-          content: `Traduce al ${targetLangName} de manera informal.`,
+          content: `Traduce al ${targetLangName}.`,
         },
         {
           role: "user",
