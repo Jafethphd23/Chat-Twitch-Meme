@@ -14,6 +14,22 @@ export interface BotEvent {
   data: any;
 }
 
+function limpiarMensaje(msg: string, tags: tmi.ChatUserstate): string {
+  if (!tags.emotes) return msg;
+
+  let copia = msg;
+
+  Object.values(tags.emotes).forEach(rangos => {
+    rangos.forEach(rango => {
+      const [inicio, fin] = rango.split('-').map(Number);
+      const texto = msg.substring(inicio, fin + 1);
+      copia = copia.replace(texto, '');
+    });
+  });
+
+  return copia.replace(/\s+/g, ' ').trim();
+}
+
 export class TwitchBot {
   private client: tmi.Client | null = null;
   private config: BotConfig | null = null;
@@ -105,26 +121,37 @@ export class TwitchBot {
         return;
       }
 
-      if (message.length < 2) {
-        console.log(`[SKIP] Message too short: ${message}`);
+      // Clean emotes from message
+      const cleanedMessage = limpiarMensaje(message, tags);
+      
+      if (cleanedMessage.length < 2) {
+        console.log(`[SKIP] Message too short after cleaning: ${cleanedMessage}`);
         return;
       }
 
       const user = tags["display-name"] || tags.username || "User";
-      console.log(`[MESSAGE RECEIVED] ${user}: ${message}`);
+      
+      // Skip messages that look like bot translations (format: "user: translated text")
+      const botUsername = process.env.TWITCH_BOT_USERNAME?.toLowerCase();
+      if (botUsername && tags.username?.toLowerCase() === botUsername) {
+        console.log(`[SKIP] Bot's own message: ${cleanedMessage}`);
+        return;
+      }
+      
+      console.log(`[MESSAGE RECEIVED] ${user}: ${cleanedMessage}`);
 
       this.emitEvent({
         type: "message_received",
         timestamp: Date.now(),
         data: {
           user,
-          message,
+          message: cleanedMessage,
           channel: config.channel,
         },
       });
 
       this.messageQueue.push({
-        text: message,
+        text: cleanedMessage,
         user,
       });
 
