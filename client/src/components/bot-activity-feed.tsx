@@ -173,11 +173,11 @@ export function BotActivityFeed() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-lg border border-border">
-      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border bg-card/50">
+    <div className="flex flex-col h-full bg-white/90 rounded-xl border border-pink-200 shadow-md">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-pink-200 bg-pink-50/50">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-primary" />
-          <h2 className="font-medium text-sm">Bot Activity</h2>
+          <h2 className="font-medium text-sm text-[hsl(340,50%,35%)]">Bot Activity</h2>
         </div>
         <span className="text-xs text-muted-foreground">
           {activities.length} events
@@ -188,7 +188,7 @@ export function BotActivityFeed() {
         <div className="p-3 space-y-2">
           {activities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <MessageCircle className="w-8 h-8 text-muted-foreground/30 mb-2" />
+              <MessageCircle className="w-8 h-8 text-pink-300 mb-2" />
               <p className="text-xs text-muted-foreground">
                 No bot activity yet
               </p>
@@ -197,7 +197,7 @@ export function BotActivityFeed() {
             activities.map((activity) => (
               <div
                 key={activity.id}
-                className="p-3 rounded-lg bg-background/50 border border-border/50 hover-elevate transition-colors"
+                className="p-3 rounded-lg bg-pink-50/50 border border-pink-100 hover-elevate transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-1">{getIcon(activity.type)}</div>

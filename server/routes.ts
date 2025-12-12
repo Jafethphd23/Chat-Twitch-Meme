@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { TwitchBot, type BotEvent } from "./bot";
+import { setProfanityFilter, isProfanityFilterEnabled } from "./chat";
 
 let botInstance: TwitchBot | null = null;
 const wsClients: Set<WebSocket> = new Set();
@@ -91,6 +92,30 @@ export async function registerRoutes(
     return res.json({
       connected: isConnected,
       channel,
+    });
+  });
+
+  // API endpoint to get profanity filter status
+  app.get("/api/settings/profanity-filter", (req, res) => {
+    return res.json({
+      enabled: isProfanityFilterEnabled(),
+    });
+  });
+
+  // API endpoint to toggle profanity filter
+  app.post("/api/settings/profanity-filter", (req, res) => {
+    const { enabled } = req.body;
+    
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ error: "enabled must be a boolean" });
+    }
+    
+    setProfanityFilter(enabled);
+    console.log(`[SETTINGS] Profanity filter ${enabled ? "enabled" : "disabled"}`);
+    
+    return res.json({
+      success: true,
+      enabled: isProfanityFilterEnabled(),
     });
   });
 

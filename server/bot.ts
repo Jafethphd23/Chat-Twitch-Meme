@@ -1,5 +1,6 @@
 import tmi from "tmi.js";
 import { translateMessage } from "./translate";
+import { chatWithAI } from "./chat";
 
 interface BotConfig {
   channel: string;
@@ -106,6 +107,49 @@ export class TwitchBot {
             error: "Translation stopped",
           },
         });
+        return;
+      }
+
+      // Handle !chibi command for chat
+      const lowerMessage = message.trim().toLowerCase();
+      if (lowerMessage === "!chibi" || lowerMessage.startsWith("!chibi ") || lowerMessage.startsWith("!chibi?") || lowerMessage.startsWith("!chibi,")) {
+        const question = message.substring(6).trim().replace(/^[?,\s]+/, '');
+        const user = tags["display-name"] || tags.username || "User";
+        
+        if (question.length === 0) {
+          if (this.client && this.config) {
+            await this.client.say(this.config.channel, `@${user} Escribe algo después de !chibi para preguntarme`);
+          }
+          return;
+        }
+        
+        console.log(`[COMMAND] !chibi - Chat question: ${question}`);
+        
+        try {
+          const response = await chatWithAI(question);
+          if (this.client && this.config) {
+            if (response) {
+              const outMessage = `@${user} ${response}`;
+              console.log(`[CHAT RESPONSE] ${outMessage}`);
+              await this.client.say(this.config.channel, outMessage);
+              
+              this.emitEvent({
+                type: "message_sent",
+                timestamp: Date.now(),
+                data: {
+                  user,
+                  original: question,
+                  translated: response,
+                  language: "chat",
+                },
+              });
+            } else {
+              await this.client.say(this.config.channel, `@${user} No puedo responder a eso`);
+            }
+          }
+        } catch (err) {
+          console.error("[CHAT ERROR]", err);
+        }
         return;
       }
 

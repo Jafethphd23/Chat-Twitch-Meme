@@ -8,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Play, Square, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Play, Square, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 import { BotActivityFeed } from "@/components/bot-activity-feed";
 import { supportedLanguages } from "@shared/schema";
 import { SiTwitch } from "react-icons/si";
@@ -21,12 +22,38 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectedChannel, setConnectedChannel] = useState<string | null>(null);
+  const [profanityFilter, setProfanityFilter] = useState(true);
 
   useEffect(() => {
     checkStatus();
+    fetchProfanityFilter();
     const interval = setInterval(checkStatus, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchProfanityFilter = async () => {
+    try {
+      const response = await fetch("/api/settings/profanity-filter");
+      const data = await response.json();
+      setProfanityFilter(data.enabled);
+    } catch (err) {
+      console.error("Failed to fetch profanity filter:", err);
+    }
+  };
+
+  const toggleProfanityFilter = async () => {
+    try {
+      const response = await fetch("/api/settings/profanity-filter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !profanityFilter }),
+      });
+      const data = await response.json();
+      setProfanityFilter(data.enabled);
+    } catch (err) {
+      console.error("Failed to toggle profanity filter:", err);
+    }
+  };
 
   const checkStatus = async () => {
     try {
@@ -105,14 +132,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <header className="border-b border-border bg-card/95 backdrop-blur">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-[hsl(190,70%,90%)] via-[hsl(350,100%,95%)] to-[hsl(340,80%,88%)]">
+      <header className="border-b border-border bg-white/80 backdrop-blur-sm shadow-sm">
         <div className="flex items-center justify-between p-6">
           <div className="flex items-center gap-3">
             <SiTwitch className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-semibold">Chat Translator Bot</h1>
+            <h1 className="text-2xl font-semibold text-[hsl(340,50%,35%)]">Meme Translate Bot</h1>
           </div>
-          <Badge variant="outline" className="px-3 py-1.5 text-sm">
+          <Badge variant="outline" className="px-3 py-1.5 text-sm bg-white/50">
             {isConnected ? "Active" : "Inactive"}
           </Badge>
         </div>
@@ -121,7 +148,25 @@ export default function Home() {
       <main className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
         {/* Left Column - Controls */}
         <div className="lg:col-span-1 flex flex-col gap-4">
-          <div className="p-6 rounded-lg bg-card border border-border">
+          {/* Bad Words Filter Toggle */}
+          <div className="p-4 rounded-xl bg-white/90 border border-pink-200 shadow-md">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium text-[hsl(340,50%,35%)]">Bad Words</p>
+                  <p className="text-xs text-muted-foreground">Block bad words in chat</p>
+                </div>
+              </div>
+              <Switch
+                checked={profanityFilter}
+                onCheckedChange={toggleProfanityFilter}
+                data-testid="switch-profanity-filter"
+              />
+            </div>
+          </div>
+
+          <div className="p-6 rounded-xl bg-white/90 border border-pink-200 shadow-md">
             <div className="flex items-start gap-3 mb-6">
               {isConnected ? (
                 <CheckCircle2 className="w-6 h-6 text-[hsl(145,100%,35%)] mt-0.5" />
@@ -217,8 +262,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                  <p className="text-sm text-foreground mb-2">
+                <div className="p-4 rounded-lg bg-pink-100/80 border border-pink-200">
+                  <p className="text-sm text-[hsl(340,50%,35%)] mb-2">
                     Bot translating messages in <strong>#{connectedChannel}</strong>
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -257,9 +302,9 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-border py-3 px-4 text-center">
+      <footer className="border-t border-pink-200 py-3 px-4 text-center bg-white/60">
         <p className="text-xs text-muted-foreground">
-          Powered by google translate design jafethphd23
+          Created by Ostian for Nagayama Meme
         </p>
       </footer>
     </div>
